@@ -20,10 +20,13 @@ else
 	VLROOT_ARCH = glnxa64
 endif
 
-CXXFLAGS = -std=c++0x -O3 -g -Wall -fmessage-length=0
+CXXFLAGS = -std=c++11 -pthread -O3 -g -Wall -fmessage-length=0
 EXEFLAGS = -Wl,-rpath,'$$ORIGIN'/$(VLROOT)/bin/$(VLROOT_ARCH)
 
-LIBS_EXTRACTOR = -L$(VLROOT)/bin/$(VLROOT_ARCH)/ -lvl `pkg-config --cflags --libs opencv`
+FLAGS_EXTRACTOR = -L$(VLROOT)/bin/$(VLROOT_ARCH)/ -lvl `pkg-config --cflags opencv`
+LIBS_EXTRACTOR = -L$(VLROOT)/bin/$(VLROOT_ARCH)/ -lvl `pkg-config --libs opencv`
+
+FLAGS_EXTRACTOR += -L/usr/local/share/OpenCV/3rdparty/lib
 
 OBJS_FEATURE_EXTRACTOR = sift_extractor.o $(FEATURESET_DIR)/feature_set.o
 
@@ -35,41 +38,41 @@ OBJS_TEST_READ = $(FEATURESET_DIR)/feature_set.o $(FILEIO_DIR)/file_io.o
 all: $(FEATURE_EXTRACTOR) $(TEST_FEATURE_EXTRACTOR) $(TEST_READ)
 
 $(FILEIO_DIR)/file_io.o: $(FILEIO_DIR)/file_io.cc $(FILEIO_DIR)/file_io.h
-	$(CXX) $(CXXFLAGS) -c $(FILEIO_DIR)/file_io.cc \
+	$(CXX) $(CXXFLAGS) $(FLAGS_EXTRACTOR) -c $(FILEIO_DIR)/file_io.cc \
 	-o $(FILEIO_DIR)/file_io.o
 
 $(FEATURESET_DIR)/feature_set.o: $(FEATURESET_DIR)/feature_set.cc $(FEATURESET_DIR)/feature_set.h
-	$(CXX) $(CXXFLAGS) -c $(FEATURESET_DIR)/feature_set.cc \
+	$(CXX) $(CXXFLAGS) $(FLAGS_EXTRACTOR) -c $(FEATURESET_DIR)/feature_set.cc \
 	-o $(FEATURESET_DIR)/feature_set.o
 
 sift_extractor.o: sift_extractor.cc sift_extractor.h
-	$(CXX) $(CXXFLAGS) -c sift_extractor.cc \
+	$(CXX) $(CXXFLAGS) $(FLAGS_EXTRACTOR) -c sift_extractor.cc \
 	-o sift_extractor.o
 
 $(FEATURE_EXTRACTOR).o: extract.cc
-	$(CXX) $(CXXFLAGS) -c extract.cc \
+	$(CXX) $(CXXFLAGS) $(FLAGS_EXTRACTOR) -c extract.cc \
 	-o extract.o
 
 $(TEST_FEATURE_EXTRACTOR).o: test_extract.cc
-	$(CXX) $(CXXFLAGS) -c test_extract.cc \
+	$(CXX) $(CXXFLAGS) $(FLAGS_EXTRACTOR) -c test_extract.cc \
 	-o test_extract.o
 
 $(TEST_READ).o: test_read.cc
-	$(CXX) $(CXXFLAGS) -c test_read.cc \
+	$(CXX) $(CXXFLAGS) $(FLAGS_EXTRACTOR) -c test_read.cc \
 	-o test_read.o
 
 $(FEATURE_EXTRACTOR): $(FEATURE_EXTRACTOR).o $(OBJS_FEATURE_EXTRACTOR)
-	$(CXX) $(CXXFLAGS) $(EXEFLAGS) $(FEATURE_EXTRACTOR).o $(OBJS_FEATURE_EXTRACTOR) \
+	$(CXX) $(CXXFLAGS) $(EXEFLAGS) $(FLAGS_EXTRACTOR) $(FEATURE_EXTRACTOR).o $(OBJS_FEATURE_EXTRACTOR) \
 	-o $(FEATURE_EXTRACTOR)	$(LIBS_EXTRACTOR); \
 	$(MAC_INSTALL_CMD_FE)
 
 $(TEST_FEATURE_EXTRACTOR): $(TEST_FEATURE_EXTRACTOR).o $(OBJS_TEST_FEATURE_EXTRACTOR)
-	$(CXX) $(CXXFLAGS) $(EXEFLAGS) $(TEST_FEATURE_EXTRACTOR).o $(OBJS_TEST_FEATURE_EXTRACTOR) \
+	$(CXX) $(CXXFLAGS) $(EXEFLAGS) $(FLAGS_EXTRACTOR) $(TEST_FEATURE_EXTRACTOR).o $(OBJS_TEST_FEATURE_EXTRACTOR) \
 	-o $(TEST_FEATURE_EXTRACTOR) $(LIBS_EXTRACTOR); \
 	$(MAC_INSTALL_CMD_TFE)
 
 $(TEST_READ): $(TEST_READ).o $(OBJS_TEST_READ)
-	$(CXX) $(CXXFLAGS) $(EXEFLAGS) $(TEST_READ).o $(OBJS_TEST_READ) \
+	$(CXX) $(CXXFLAGS) $(FLAGS_EXTRACTOR) $(EXEFLAGS) $(TEST_READ).o $(OBJS_TEST_READ) \
 	-o $(TEST_READ); \
 	$(MAC_INSTALL_CMD_TR)
 
